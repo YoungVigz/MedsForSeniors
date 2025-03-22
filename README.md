@@ -28,3 +28,4 @@ npm run dev
 - [@Kacper Brunne](https://github.com/KacperBrunne)
 - [@Mikołaj Mackiewicz](https://github.com/Macek2)
 - [@Bartek Chrzanowski](https://github.com/orzel1)
+- [@Igor Białas](https://github.com/IgorBia)
