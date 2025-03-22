@@ -1,50 +1,30 @@
-# Welcome to your Expo app 👋
+# MedsForSeniors
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+> App made for PZNU classes. Helping seniors with taking prescribed medications.
 
-## Get started
+## Description
 
-1. Install dependencies
+MedsForSeniors is a web/mobile application designed to help seniors manage their medication intake. The app provides an intuitive interface, automated reminders, and accessibility features such as voice assistance, high contrast mode, and enlarged UI elements to support elderly users.
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-    npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Installation (Local Setup)
 
 ```bash
-npm run reset-project
+# Clone the repository:
+git clone https://github.com/YoungVigz/MedsForSeniors
+
+# Navigate to the project directory:
+cd MedsForSeniors
+
+# Install dependencies:
+npm install
+
+# Start the application:
+npm run dev
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Authors:
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- [@Gabriel Gałęza](https://github.com/YoungVigz)
+- [@Kacper Brunne](https://github.com/KacperBrunne)
+- [@Mikołaj Mackiewicz](https://github.com/Macek2)
+- [@Bartek Chrzanowski](https://github.com/orzel1)
