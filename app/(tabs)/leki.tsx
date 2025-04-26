@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 export default function Leki() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Testowe!</Text>
+      <Text style={styles.text}>Tutaj leki</Text>
     </View>
   );
 }

@@ -5,8 +5,8 @@ export default function Apteczka() {
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Apteczka</Text>
-      <Link href="/about" style={styles.button}>
-        Go to About Screen
+      <Link href="/leki" style={styles.button}>
+        Leki Gaming
       </Link>
     </View>
   );

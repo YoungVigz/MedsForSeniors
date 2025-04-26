@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 export default function Harmonogram() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Welcome, to MedsForSeniors!</Text>
+      <Text style={styles.text}>Tu harmonogram leków</Text>
     </View>
   );
 }
