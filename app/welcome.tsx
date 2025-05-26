@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Animated } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 
@@ -9,6 +9,10 @@ export default function WelcomeScreen() {
   const [name, setName] = useState('');
   const [showInput, setShowInput] = useState(false);
   const router = useRouter();
+  const [showWelcome, setShowWelcome] = useState(true);
+  const fadeTextAnim = useRef(new Animated.Value(0)).current;
+
+
 
   useEffect(() => {
     const checkName = async () => {
@@ -22,21 +26,40 @@ export default function WelcomeScreen() {
     checkName();
   }, []);
 
-  const startAnimation = () => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 2500,
+const startAnimation = () => {
+  Animated.parallel([
+  Animated.timing(fadeAnim, {
+    toValue: 1,
+    duration: 1500,
+    useNativeDriver: true,
+  }),
+  Animated.timing(fadeTextAnim, {
+    toValue: 1,
+    duration: 2000,
+    useNativeDriver: true,
+  }),
+]).start(() => {
+    Animated.timing(fadeTextAnim, {
+      toValue: 0,
+      duration: 600,
       useNativeDriver: true,
     }).start(() => {
-      setShowInput(true);
-      Animated.timing(fadeInputAnim, {
+      setShowWelcome(false); 
+      Animated.timing(fadeTextAnim, {
         toValue: 1,
-        duration: 500,
-        delay: 300,
+        duration: 1000,
         useNativeDriver: true,
-      }).start();
+      }).start(() => {
+        setShowInput(true);
+        Animated.timing(fadeInputAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }).start();
+      });
+      });
     });
-  };
+};
 
   const handleSave = async () => {
     if (name.trim().length > 0) {
@@ -65,9 +88,21 @@ return (
       ]}
     />
 
-    <Animated.Text style={[styles.title, { opacity: fadeAnim }]}>
-      MedsForSeniors
-    </Animated.Text>
+<Animated.View style={{ opacity: fadeTextAnim }}>
+  <Text style={styles.title}>
+    {showWelcome ? (
+      <>
+        Witaj w{'\n'}
+        <Text style={styles.brand}>MedsForSeniors!</Text>
+      </>
+    ) : (
+      <>
+        Wprowadź swoje{'\n'}
+        <Text style={styles.brand}>imię.</Text>
+      </>
+    )}
+  </Text>
+</Animated.View>
 
     <Animated.View
       style={[
@@ -85,14 +120,16 @@ return (
         },
       ]}
     >
-      <Text style={styles.label}>Jak masz na imię?</Text>
       <TextInput
         style={styles.input}
-        placeholder="Wpisz imię"
         value={name}
         onChangeText={setName}
       />
-      <Button title="Start" onPress={handleSave} color="#126A91" />
+        <View style={styles.buttonWrapper}>
+    <TouchableOpacity style={styles.button} onPress={handleSave}>
+      <Text style={styles.buttonText}>Rozpocznij</Text>
+    </TouchableOpacity>
+  </View>   
     </Animated.View>
   </View>
 );
@@ -101,43 +138,74 @@ return (
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#f9f9f9',
-  },
-  title: {
-    fontSize: 34,
-    fontWeight: 'bold',
-    marginBottom: 40,
-    color: '#126A91',
-  },
+container: {
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+  padding: 20,
+  backgroundColor: '#f9f9f9',
+  position: 'relative',   
+},
+title: {
+  fontSize: 38,
+  fontWeight: 'bold',
+  color: '#000',
+  width: '100%',
+},
+
+brand: {
+  color: '#126A91',
+  fontStyle: 'italic',
+  fontSize: 38,
+},
   label: {
     fontSize: 18,
     marginBottom: 8,
   },
-  input: {
-    width: '50%',
-    borderWidth: 1,
-    borderColor: '#126A91',
-    padding: 10,
-    marginBottom: 20,
-    borderRadius: 8,
-  },
+input: {
+  width: '70%',
+  borderWidth: 1,
+  borderColor: 'grey',
+  padding: 15,
+  marginBottom: 10,
+  borderRadius: 40,
+},
   inputContainer: {
   width: '100%',
   alignItems: 'center',
   justifyContent: 'center',
-    
+    marginTop: 20,
 },
 logo: {
   width: 60,
   height: 60,
   position: 'absolute',
-  top: 40,      // dostosuj pod swoje urządzenie
-  left: 20,
+  top: 50,    
+  right: 50,   
   zIndex: 10,
-}
+},
+buttonWrapper: {
+  position: 'absolute',
+  top: '280%', 
+  left: 0,
+  right: 0,
+  alignItems: 'center',
+},
+button: {
+  backgroundColor: '#126A91',
+  paddingVertical: 12,
+  paddingHorizontal: 25,
+  borderRadius: 20,
+  alignItems: 'center',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.25,
+  shadowRadius: 3.84,
+  elevation: 5,
+},
+buttonText: {
+  color: '#fff',
+  fontSize: 16,
+  fontWeight: 'bold',
+},
 });
