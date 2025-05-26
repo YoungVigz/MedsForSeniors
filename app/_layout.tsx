@@ -5,6 +5,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useColorScheme } from 'react-native';
 
@@ -27,9 +29,24 @@ export default function RootLayout() {
     return null;
   }
 
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const stored = await AsyncStorage.getItem('userName');
+      if (!stored) {
+        router.replace('/welcome');
+      } else {
+        router.replace('/'); // lub /main /tabs
+      }
+    };
+    checkUser();
+  }, []);
+
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
+        <Stack.Screen name="welcome" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
