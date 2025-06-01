@@ -1,8 +1,7 @@
 import { Tabs } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
-import { Animated, Easing, Text } from 'react-native';
+import { TouchableOpacity, View, StyleSheet, Animated, Easing, Switch, Text } from 'react-native';
 import { useState, useRef, useEffect } from 'react';
 
 export default function TabLayout() {
@@ -23,28 +22,37 @@ export default function TabLayout() {
       toValue: isSeniorMode ? 1 : 0,
       duration: 300,
       easing: Easing.out(Easing.circle),
-      useNativeDriver: false, // zmieniamy kolory, więc musi być false
+      useNativeDriver: false,
     }).start();
   }, [isSeniorMode]);
 
-  const backgroundColor = animatedValue.interpolate({
+  const animatedBackground = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: ['#444', '#fff']
+    outputRange: ['#444', '#fff'], // ciemne tło -> jasne
   });
 
-  const textColor = animatedValue.interpolate({
+  const animatedTextColor = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: ['#fff', '#126A91']
+    outputRange: ['#fff', '#126A91'],
   });
+
 
   const TopMenuBar = () => (
     <View style={styles.topMenuContainer}>
-      <TouchableOpacity onPress={toggleUserMode} style={styles.iconButton}>
-      <Animated.View style={[styles.sliderButton, { backgroundColor }]}>
-        <Animated.Text style={[styles.sliderText, { color: textColor }]}>
-          {isSeniorMode ? 'S' : 'O'}
-        </Animated.Text>
-      </Animated.View>
+      <TouchableOpacity onPress={toggleUserMode} style={styles.customSwitchWrapper}>
+        <View style={[
+          styles.customSwitchTrack,
+          isSeniorMode && styles.customSwitchTrackActive
+        ]}>
+          <Animated.View style={[
+            styles.customThumb,
+            isSeniorMode && styles.customThumbActive
+          ]}>
+            <Text style={styles.thumbText}>
+              {isSeniorMode ? 'S' : 'O'}
+            </Text>
+          </Animated.View>
+        </View>
     </TouchableOpacity>
       
       <TouchableOpacity onPress={toggleContrast} style={styles.iconButton}>
@@ -79,8 +87,12 @@ export default function TabLayout() {
         headerTintColor: '#fff',
         tabBarStyle: {
           backgroundColor: '#25292e',
-          height: 110, 
-          paddingBottom: 10, 
+          height: 110,
+          paddingBottom: 10,
+          bottom: 50,
+          left: 0,
+          right: 0,
+          borderTopWidth: 0,
         },
         tabBarItemStyle: {
           height: '100%',
@@ -147,24 +159,39 @@ const styles = StyleSheet.create({
     padding: 10,
     marginLeft: 15,
   },
-  sliderButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: '#444',
-    alignItems: 'center',
+  customSwitchWrapper: {
+    marginTop: 14,
+    marginRight: 'auto',
+    paddingLeft: 10,
+  },
+  customSwitchTrack: {
+    width: 90, 
+    height: 40, 
+    borderRadius: 20,
+    backgroundColor: '#666',
     justifyContent: 'center',
+    paddingHorizontal: 4,
   },
-  sliderText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+  customSwitchTrackActive: {
+    backgroundColor: '#cce6f4',
   },
-  activeButton: {
+  customThumb: {
+    width: 34, 
+    height: 34, 
+    borderRadius: 17,
+    backgroundColor: '#ccc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    transform: [{ translateX: 0 }],
+  },
+  
+  customThumbActive: {
     backgroundColor: '#fff',
-    borderRadius: 15,
+    transform: [{ translateX: 48 }],
   },
-  activeText: {
+  thumbText: {
+    fontWeight: 'bold',
+    fontSize: 18, 
     color: '#126A91',
   },
   
