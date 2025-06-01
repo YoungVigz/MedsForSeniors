@@ -50,7 +50,7 @@ export default function TabLayout() {
       <TouchableOpacity onPress={toggleContrast} style={styles.iconButton}>
         <Ionicons 
           name={isHighContrast ? "contrast" : "contrast-outline"} 
-          size={24} 
+          size={40} 
           color={isHighContrast ? "#126A91" : "#fff"} 
         />
       </TouchableOpacity>
@@ -58,7 +58,7 @@ export default function TabLayout() {
       <TouchableOpacity onPress={cycleFontSize} style={styles.iconButton}>
         <MaterialCommunityIcons 
           name="format-font-size-increase" 
-          size={24} 
+          size={40} 
           color={fontSizeLevel > 0 ? "#126A91" : "#fff"} 
         />
       </TouchableOpacity>
@@ -99,7 +99,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="harmonogram"
         options={{
-          title: 'Harmonogram',
+          headerShown: false,
+          title: 'Harmonogram' ,
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'calendar' : 'calendar-outline'} color={color} size={50} />
           ),
@@ -110,6 +111,7 @@ export default function TabLayout() {
         name="leki"
         options={{
           title: 'Leki na dziś',
+          headerShown: false,
           tabBarIcon: ({ color, focused }) => (
             <MaterialCommunityIcons name='pill' color={color} size={50} />
           ),
@@ -120,6 +122,7 @@ export default function TabLayout() {
         name="apteczka"
         options={{
           title: 'Apteczka',
+          headerShown: false,
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'medkit' : 'medkit-outline'} color={color} size={50}/>
           ),
