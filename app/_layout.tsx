@@ -37,7 +37,7 @@ export default function RootLayout() {
       if (!stored) {
         router.replace('/welcome');
       } else {
-        router.replace('/'); // lub /main /tabs
+        router.replace('/(tabs)'); // lub /main /tabs
       }
     };
     checkUser();
