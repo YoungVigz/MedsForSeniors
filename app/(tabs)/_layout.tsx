@@ -1,8 +1,8 @@
 import { Tabs } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
-import { useState } from 'react';
+import { TouchableOpacity, View, StyleSheet, Animated, Easing, Switch, Text } from 'react-native';
+import { useState, useRef, useEffect } from 'react';
 
 export default function TabLayout() {
   const [isSeniorMode, setIsSeniorMode] = useState(false);
@@ -14,15 +14,46 @@ export default function TabLayout() {
   const toggleContrast = () => setIsHighContrast(!isHighContrast);
   const cycleFontSize = () => setFontSizeLevel((prev) => (prev + 1) % 3);
 
+  //zabawa z suwakiem
+  const animatedValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(animatedValue, {
+      toValue: isSeniorMode ? 1 : 0,
+      duration: 300,
+      easing: Easing.out(Easing.circle),
+      useNativeDriver: false,
+    }).start();
+  }, [isSeniorMode]);
+
+  const animatedBackground = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#444', '#fff'], // ciemne tło -> jasne
+  });
+
+  const animatedTextColor = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#fff', '#126A91'],
+  });
+
+
   const TopMenuBar = () => (
     <View style={styles.topMenuContainer}>
-      <TouchableOpacity onPress={toggleUserMode} style={styles.iconButton}>
-        <MaterialCommunityIcons 
-          name={isSeniorMode ? "account-supervisor" : "account-supervisor-outline"} 
-          size={40} 
-          color={isSeniorMode ? "#126A91" : "#fff"} 
-        />
-      </TouchableOpacity>
+      <TouchableOpacity onPress={toggleUserMode} style={styles.customSwitchWrapper}>
+        <View style={[
+          styles.customSwitchTrack,
+          isSeniorMode && styles.customSwitchTrackActive
+        ]}>
+          <Animated.View style={[
+            styles.customThumb,
+            isSeniorMode && styles.customThumbActive
+          ]}>
+            <Text style={styles.thumbText}>
+              {isSeniorMode ? 'S' : 'O'}
+            </Text>
+          </Animated.View>
+        </View>
+    </TouchableOpacity>
       
       <TouchableOpacity onPress={toggleContrast} style={styles.iconButton}>
         <Ionicons 
@@ -56,8 +87,12 @@ export default function TabLayout() {
         headerTintColor: '#fff',
         tabBarStyle: {
           backgroundColor: '#25292e',
-          height: 110, 
-          paddingBottom: 10, 
+          height: 110,
+          paddingBottom: 10,
+          bottom: 50,
+          left: 0,
+          right: 0,
+          borderTopWidth: 0,
         },
         tabBarItemStyle: {
           height: '100%',
@@ -124,4 +159,42 @@ const styles = StyleSheet.create({
     padding: 10,
     marginLeft: 15,
   },
+  customSwitchWrapper: {
+    marginTop: 14,
+    marginRight: 'auto',
+    paddingLeft: 10,
+  },
+  customSwitchTrack: {
+    width: 90, 
+    height: 40, 
+    borderRadius: 20,
+    backgroundColor: '#666',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  customSwitchTrackActive: {
+    backgroundColor: '#cce6f4',
+  },
+  customThumb: {
+    width: 34, 
+    height: 34, 
+    borderRadius: 17,
+    backgroundColor: '#ccc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    transform: [{ translateX: 0 }],
+  },
+  
+  customThumbActive: {
+    backgroundColor: '#fff',
+    transform: [{ translateX: 48 }],
+  },
+  thumbText: {
+    fontWeight: 'bold',
+    fontSize: 18, 
+    color: '#126A91',
+  },
+  
 });
+
+
