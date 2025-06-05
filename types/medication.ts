@@ -60,7 +60,7 @@ type AsPresribedDosage = { unit: 'asPrescribed' }
  * Maps each MedicationType to its corresponding dosage format.
  * This ensures that only the appropriate dosage format is provided for each medication type.
  */
-interface DosageMapping {
+export interface DosageMapping {
   Syrup: LiqudDosage;
   Tincture: LiqudDosage;
   Granules: LiqudDosage;

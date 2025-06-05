@@ -1,11 +1,10 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
-import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useColorScheme } from 'react-native';
@@ -13,11 +12,12 @@ import { useColorScheme } from 'react-native';
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
+
+  const router = useRouter();
 
   useEffect(() => {
     if (loaded) {
@@ -25,23 +25,21 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
-  if (!loaded) {
-    return null;
-  }
-
-  const router = useRouter();
-
   useEffect(() => {
     const checkUser = async () => {
       const stored = await AsyncStorage.getItem('userName');
       if (!stored) {
         router.replace('/welcome');
       } else {
-        router.replace('/(tabs)'); // lub /main /tabs
+        router.replace('/(tabs)');
       }
     };
     checkUser();
   }, []);
+
+  if (!loaded) {
+    return null;
+  }
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
