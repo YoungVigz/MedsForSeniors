@@ -2,15 +2,27 @@ import { Tabs } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { TouchableOpacity, View, StyleSheet, Animated, Easing, Switch, Text } from 'react-native';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useContext } from 'react';
+import { SettingsContext, SettingsProvider } from '@/context/SettingsContext';
 
 export default function TabLayout() {
-  const [isSeniorMode, setIsSeniorMode] = useState(false);
-  const [isHighContrast, setIsHighContrast] = useState(false);
-  const [fontSizeLevel, setFontSizeLevel] = useState(0);
+  return (
+    // Owijamy całość w SettingsProvider, by każdy ekran miał dostęp do isSeniorMode
+    <SettingsProvider>
+      <TabLayoutInner />
+    </SettingsProvider>
+  );
+}
+
+function TabLayoutInner() {
+
+  // Wartości senior moda pochodzą teraz z contextu który jest dostępny dla całej aplikacji
+  const { isSeniorMode, setIsSeniorMode } = useContext(SettingsContext);
+  const [isHighContrast, setIsHighContrast] = useState<boolean>(false);
+  const [fontSizeLevel, setFontSizeLevel] = useState<number>(0);
 
   // Funkcje do zmiany ustawień
-  const toggleUserMode = () => setIsSeniorMode(!isSeniorMode);
+  const toggleUserMode = () => setIsSeniorMode(!isSeniorMode) 
   const toggleContrast = () => setIsHighContrast(!isHighContrast);
   const cycleFontSize = () => setFontSizeLevel((prev) => (prev + 1) % 3);
 
@@ -49,7 +61,7 @@ export default function TabLayout() {
             isSeniorMode && styles.customThumbActive
           ]}>
             <Text style={styles.thumbText}>
-              {isSeniorMode ? 'S' : 'O'}
+              {isSeniorMode ? 'O' : 'S'}
             </Text>
           </Animated.View>
         </View>

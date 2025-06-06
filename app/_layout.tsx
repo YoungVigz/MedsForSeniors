@@ -1,11 +1,10 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
-import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useColorScheme, View } from 'react-native';
@@ -13,7 +12,6 @@ import { useColorScheme, View } from 'react-native';
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-
   const colorScheme = useColorScheme();
   const [fontsLoaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -33,7 +31,7 @@ export default function RootLayout() {
       if (!stored) {
         router.replace('/welcome');
       } else {
-        router.replace('/(tabs)/leki'); // lub /main /tabs
+        router.replace('/(tabs)/leki');
       }
     };
     if (fontsLoaded) checkUser();
@@ -41,6 +39,10 @@ export default function RootLayout() {
 
   if (!fontsLoaded) {
     return <View />;
+  }
+
+  if (!loaded) {
+    return null;
   }
 
   return (
