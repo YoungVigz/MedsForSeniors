@@ -7,23 +7,23 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { useColorScheme } from 'react-native';
+import { useColorScheme, View } from 'react-native';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
+  const [fontsLoaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
-  const router = useRouter();
+   const router = useRouter();
 
   useEffect(() => {
-    if (loaded) {
+    if (fontsLoaded) {
       SplashScreen.hideAsync();
     }
-  }, [loaded]);
+  }, [fontsLoaded]);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -31,11 +31,15 @@ export default function RootLayout() {
       if (!stored) {
         router.replace('/welcome');
       } else {
-        router.replace('/(tabs)');
+        router.replace('/(tabs)/leki');
       }
     };
-    checkUser();
-  }, []);
+    if (fontsLoaded) checkUser();
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
+    return <View />;
+  }
 
   if (!loaded) {
     return null;

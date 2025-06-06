@@ -12,13 +12,11 @@ export default function WelcomeScreen() {
   const [showWelcome, setShowWelcome] = useState(true);
   const fadeTextAnim = useRef(new Animated.Value(0)).current;
 
-
-
   useEffect(() => {
     const checkName = async () => {
       const stored = await AsyncStorage.getItem('userName');
       if (stored) {
-        router.replace('/'); 
+        router.replace('/(tabs)/leki');
       } else {
         startAnimation();
       }
@@ -64,7 +62,7 @@ const startAnimation = () => {
   const handleSave = async () => {
     if (name.trim().length > 0) {
       await AsyncStorage.setItem('userName', name.trim());
-      router.replace('/');
+      router.replace('/(tabs)/leki');
     }
   };
 
