@@ -41,7 +41,7 @@ export default function RootLayout() {
     return <View />;
   }
 
-  if (!loaded) {
+  if (!fontsLoaded) {
     return null;
   }
 
