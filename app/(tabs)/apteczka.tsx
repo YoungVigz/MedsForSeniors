@@ -26,8 +26,10 @@ import {
   DailySchedule,
 } from '@/types/scheduler';
 import { Ionicons } from '@expo/vector-icons';
+import { useIsFocused } from '@react-navigation/native';
 
 export default function Apteczka() {
+  const isFocused = useIsFocused();
 
   // ---------------------------------------
   // Kontekst Senior Mode
@@ -100,7 +102,7 @@ export default function Apteczka() {
         console.warn('Błąd przy wczytywaniu z AsyncStorage', e);
       }
     })();
-  }, []);
+  }, [isFocused]);
 
   // ---------------------------------------
   // Obsługa zmiany daty/godziny w DateTimePicker
@@ -204,7 +206,7 @@ export default function Apteczka() {
       const newSchedule: DailySchedule = {
         medication_id: newMedId,
         frequency: 'daily',
-        timesInDay: 1,
+        timesInDay: dosageValue,
         times: [timeStr],
       };
       const updatedSchedules = [...schedules, newSchedule];
