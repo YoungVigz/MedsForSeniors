@@ -25,6 +25,7 @@ import {
 import {
   DailySchedule,
 } from '@/types/scheduler';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function Apteczka() {
 
@@ -58,6 +59,14 @@ export default function Apteczka() {
   const [newQuantity, setNewQuantity] = useState<string>('');        
   const [newDateTime, setNewDateTime] = useState<Date>(new Date()); 
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
+
+  // ---------------------------------------
+  // Stany do edycji leku:
+  //    - editingMedId: Id aktualnie edytowanego leku
+  //    - isEditModalVisible: sprawdzenie czy coś jest edytowane
+  // ---------------------------------------
+  const [editingMedId, setEditingMedId] = useState<string | null>(null);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 
   // ---------------------------------------
   // Ładowanie z AsyncStorage (medications, shelf, schedules)
@@ -104,91 +113,140 @@ export default function Apteczka() {
   };
 
   // ---------------------------------------
-  // Funkcja, która dodaje nowy lek:
-  //    - zapisuje nowy obiekt Medication do `medications`
-  //    - tworzy ShelfItem i zapisuje w `shelf`
-  //    - tworzy DailySchedule i zapisuje w `schedules`
+  // Funkcja, typu helper:
+  // resetuje wartości dla formularzy 
   // ---------------------------------------
-
-  const addMedication = async () => {
-    if (newMedName.trim().length === 0) {
-      Alert.alert('Błąd', 'Nazwa leku nie może być pusta.');
-      return;
-    }
-
-    const parsedDosage = parseInt(newDosageValue, 10);
-    if (isNaN(parsedDosage) || parsedDosage <= 0) {
-      Alert.alert('Błąd', 'Podaj prawidłową ilość tabletek na dobę (>= 1).');
-      return;
-    }
-    const parsedQuantity = parseInt(newQuantity, 10);
-    if (isNaN(parsedQuantity) || parsedQuantity < 0) {
-      Alert.alert('Błąd', 'Podaj prawidłową ilość tabletek w apteczce (>= 0).');
-      return;
-    }
-
-    const newMedId = Date.now().toString();
-    const newMed: Medication<'Tablets'> = {
-      id: newMedId,
-      genericName: newMedName.trim(),
-      ...(newBrandName.trim().length > 0 ? { brandName: newBrandName.trim() } : {}),
-      type: 'Tablets',
-      dosage: { unit: 'pieces', value: parsedDosage },
-    };
-
-    const updatedMeds = [...medications, newMed];
-    setMedications(updatedMeds);
-    try {
-      await AsyncStorage.setItem('medications', JSON.stringify(updatedMeds));
-    } catch (e) {
-      console.warn('Błąd przy zapisie medications', e);
-    }
-
-    const newShelfItem: ShelfItem = {
-      medication_id: newMedId,
-      quantity: parsedQuantity,
-    };
-    const updatedShelf: Shelf = {
-      items: [...shelf.items, newShelfItem],
-    };
-    setShelf(updatedShelf);
-    try {
-      await AsyncStorage.setItem('shelf', JSON.stringify(updatedShelf));
-    } catch (e) {
-      console.warn('Błąd przy zapisie shelf', e);
-    }
-
-    const hours = newDateTime.getHours().toString().padStart(2, '0');
-    const minutes = newDateTime.getMinutes().toString().padStart(2, '0');
-    const timeString = `${hours}:${minutes}`;
-
-    const newSchedule: DailySchedule = {
-      medication_id: newMedId,
-      frequency: 'daily',
-      timesInDay: 1,
-      times: [timeString],
-    };
-    const updatedSchedules = [...schedules, newSchedule];
-    setSchedules(updatedSchedules);
-    try {
-      const toStore = updatedSchedules.map((s) => ({
-        ...s,
-        endDate: s.endDate ? s.endDate.toISOString() : undefined,
-        exceptions: s.exceptions
-          ? s.exceptions.map((d) => d.toISOString())
-          : undefined,
-      }));
-      await AsyncStorage.setItem('schedules', JSON.stringify(toStore));
-    } catch (e) {
-      console.warn('Błąd przy zapisie schedules', e);
-    }
-
+  const resetForm = () => {
     setNewMedName('');
     setNewBrandName('');
     setNewDosageValue('');
     setNewQuantity('');
     setNewDateTime(new Date());
-    setShowDatePicker(false);
+    setEditingMedId(null);
+  };
+
+  // ---------------------------------------
+  // Funkcja, która dodaje nowy lek:
+  //    - zapisuje nowy obiekt Medication do `medications`
+  //    - tworzy ShelfItem i zapisuje w `shelf`
+  //    - tworzy DailySchedule i zapisuje w `schedules`
+  // ---------------------------------------
+  const addOrUpdateMedication = async () => {
+    if (newMedName.trim() === '' || isNaN(Number(newDosageValue)) || isNaN(Number(newQuantity))) {
+      Alert.alert('Błąd', 'Wypełnij wszystkie pola prawidłowo.');
+      return;
+    }
+
+    const dosageValue = parseInt(newDosageValue, 10);
+    const quantityValue = parseInt(newQuantity, 10);
+    const timeStr = newDateTime.toTimeString().slice(0, 5);
+
+    if (editingMedId) {
+      // Update existing
+      const updatedMeds: Medication[] = medications.map((med) =>
+        med.id === editingMedId
+          ? {
+              ...med,
+              genericName: newMedName.trim(),
+              brandName: newBrandName.trim() || undefined,
+              dosage: { unit: 'pieces', value: dosageValue },
+            }
+          : med
+      );
+      setMedications(updatedMeds);
+      await AsyncStorage.setItem('medications', JSON.stringify(updatedMeds));
+
+      const updatedShelf: Shelf = {
+        items: shelf.items.map((item) =>
+          item.medication_id === editingMedId
+            ? { ...item, quantity: quantityValue }
+            : item
+        ),
+      };
+      setShelf(updatedShelf);
+      await AsyncStorage.setItem('shelf', JSON.stringify(updatedShelf));
+
+      const updatedSchedules: DailySchedule[] = schedules.map((sch) =>
+        sch.medication_id === editingMedId
+          ? { ...sch, times: [timeStr] }
+          : sch
+      );
+      setSchedules(updatedSchedules);
+      await AsyncStorage.setItem(
+        'schedules',
+        JSON.stringify(
+          updatedSchedules.map((s) => ({
+            ...s,
+            endDate: s.endDate?.toISOString(),
+            exceptions: s.exceptions?.map((d: Date) => d.toISOString()),
+          }))
+        )
+      );
+    } else {
+      // Add new
+      const newMedId = Date.now().toString();
+      const newMed: Medication<'Tablets'> = {
+        id: newMedId,
+        genericName: newMedName.trim(),
+        brandName: newBrandName.trim() || undefined,
+        type: 'Tablets',
+        dosage: { unit: 'pieces', value: dosageValue },
+      };
+      const updatedMeds = [...medications, newMed];
+      setMedications(updatedMeds);
+      await AsyncStorage.setItem('medications', JSON.stringify(updatedMeds));
+
+      const newShelfItem: ShelfItem = { medication_id: newMedId, quantity: quantityValue };
+      const updatedShelf: Shelf = { items: [...shelf.items, newShelfItem] };
+      setShelf(updatedShelf);
+      await AsyncStorage.setItem('shelf', JSON.stringify(updatedShelf));
+
+      const newSchedule: DailySchedule = {
+        medication_id: newMedId,
+        frequency: 'daily',
+        timesInDay: 1,
+        times: [timeStr],
+      };
+      const updatedSchedules = [...schedules, newSchedule];
+      setSchedules(updatedSchedules);
+      await AsyncStorage.setItem(
+        'schedules',
+        JSON.stringify(
+          updatedSchedules.map((s) => ({
+            ...s,
+            endDate: s.endDate?.toISOString(),
+            exceptions: s.exceptions?.map((d: Date) => d.toISOString()),
+          }))
+        )
+      );
+    }
+
+    resetForm();
+    setIsEditModalVisible(false);
+  };
+
+  // ---------------------------------------
+  // Funkcja, która wprowadza dane leku do formularza
+  // ---------------------------------------
+  const startEditMedication = (medId: string) => {
+    const med = medications.find((m) => m.id === medId);
+    if (!med) return;
+    const shelfItem = shelf.items.find((i) => i.medication_id === medId);
+    const schedule = schedules.find((s) => s.medication_id === medId);
+
+    setNewMedName(med.genericName);
+    setNewBrandName(med.brandName || '');
+    setNewDosageValue('value' in med.dosage ? med.dosage.value.toString(): "0");
+    setNewQuantity((shelfItem?.quantity || 0).toString());
+    if (schedule?.times?.[0]) {
+      const [h, m] = schedule.times[0].split(':');
+      const date = new Date();
+      date.setHours(parseInt(h));
+      date.setMinutes(parseInt(m));
+      setNewDateTime(date);
+    }
+    setEditingMedId(medId);
+    setIsEditModalVisible(true);
   };
 
   // ---------------------------------------
@@ -232,76 +290,46 @@ export default function Apteczka() {
   // Render pojedynczego leku w liście:
   // ---------------------------------------
   const renderItem = ({ item }: { item: Medication }) => {
-    const shelfEntry = shelf.items.find((si) => si.medication_id === item.id);
-    const quantity = shelfEntry ? shelfEntry.quantity : 0;
-
-    const scheduleEntry = schedules.find((sch) => sch.medication_id === item.id);
-    const timeDisplay =
-      scheduleEntry && scheduleEntry.times.length > 0
-        ? scheduleEntry.times.join(', ')
-        : '–';
-
+    const shelfEntry = shelf.items.find((s) => s.medication_id === item.id);
+    const quantity = shelfEntry?.quantity ?? 0;
+    const schedule = schedules.find((s) => s.medication_id === item.id);
+    const timeDisplay = schedule?.times?.join(', ') ?? '–';
     const dosageQuantity = 'value' in item.dosage ? item.dosage.value : 0;
 
     return (
       <View style={styles.medRow}>
-
-        {/*Tutaj jest nazwa leku i opcje do usuwania*/}
         <View style={styles.medTitle}>
-          <Text style={styles.medText}>
-            {item.genericName}
-            {item.brandName ? ` (${item.brandName})` : ''}
-          </Text>
-
+          <Text style={styles.medText}>{item.genericName}{item.brandName ? ` (${item.brandName})` : ''}</Text>
           {isSeniorMode && (
-              <TouchableOpacity
-                onPress={() =>
-                  Alert.alert(
-                    'Usuń lek',
-                    'Czy na pewno chcesz usunąć ten lek?',
-                    [
-                      { text: 'Anuluj', style: 'cancel' },
-                      {
-                        text: 'Tak, usuń',
-                        style: 'destructive',
-                        onPress: () => deleteMedication(item.id),
-                      },
-                    ]
-                  )
-                }
-              >
-                <Text style={styles.medText}>Usuń</Text>
+            <View style={{ flexDirection: 'row' }}>
+              <TouchableOpacity onPress={() => startEditMedication(item.id)}>
+                <Ionicons name="create-outline" size={30} color={item.id === editingMedId ? "#0e86d4" : "#fff"} style={{ marginRight: 10 }} />
               </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => Alert.alert('Usuń lek', 'Czy na pewno?', [
+                  { text: 'Anuluj', style: 'cancel' },
+                  { text: 'Tak', onPress: () => deleteMedication(item.id), style: 'destructive' },
+                ])}
+              >
+                <Ionicons name="close-circle-outline" size={30} color="#fff" />
+              </TouchableOpacity>
+            </View>
           )}
         </View>
-
-        {/*Tutaj są informacje o leku*/}
         <View style={styles.medInfoContainer}>
           <View>
             <Text style={styles.medInfo}>Przyjmowanie</Text>
-
-            <Text style={styles.medBadge}>
-              {timeDisplay}
-            </Text>
-
-            <Text style={styles.medBadge}>
-              codziennie
-            </Text>
-
-            <Text style={styles.medBadge}>
-              {dosageQuantity} {dosageQuantity === 1 ? 'tabletka' : 'tabletek'}
-            </Text>
+            <Text style={styles.medBadge}>{timeDisplay}</Text>
+            <Text style={styles.medBadge}>codziennie</Text>
+            <Text style={styles.medBadge}>{dosageQuantity} {dosageQuantity === 1 ? 'tabletka' : 'tabletek'}</Text>
           </View>
-
-
           <View>
             <Text style={styles.medInfo}>Zostało</Text>
-            <Text style={(quantity - (dosageQuantity * 3 )) < 0 ? styles.medBadgeDanger : styles.medBadge}>
+            <Text style={(quantity - dosageQuantity * 3) < 0 ? styles.medBadgeDanger : styles.medBadge}>
               {quantity} {quantity === 1 ? 'tabletka' : 'tabletek'}
             </Text>
           </View>
         </View>
-
       </View>
     );
   };
@@ -368,7 +396,12 @@ export default function Apteczka() {
 
           {/* Przycisk „Dodaj lek” */}
           <View style={styles.buttonWrapper}>
-            <Button title="Dodaj lek" onPress={addMedication} color="#126A91" />
+            <TouchableOpacity
+              onPress={addOrUpdateMedication}
+              style={styles.button}
+            >
+              <Text style={styles.buttonText}>{isEditModalVisible ? "Aktualizuj Lek" : "Dodaj Lek"}</Text>
+            </TouchableOpacity>
           </View>
         </>
       )}
@@ -414,6 +447,15 @@ const styles = StyleSheet.create({
   },
   buttonWrapper: {
     marginBottom: 16,
+  },
+  button: {
+    backgroundColor: '#0e86d4',
+    padding: 10,
+    borderRadius: 20
+  },
+  buttonText: {
+    textAlign: "center",
+    color: "white"
   },
   emptyText: {
     color: '#888',
