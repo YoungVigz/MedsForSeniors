@@ -218,6 +218,8 @@ const styles = StyleSheet.create({
   medText: {
     color: '#fff',
     fontSize: 20,
+    marginLeft: 10,
+    marginRight: 10,
   },
   medInfoTime: {
     color: '#fff',
