@@ -5,12 +5,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 interface SettingsContextType {
   isSeniorMode: boolean;
   setIsSeniorMode: (val: boolean) => void;
+  fontSizeLevel: number;
+  setFontSizeLevel: React.Dispatch<React.SetStateAction<number>>; 
 }
 
 // Domyślne wartości zostaną nadpisane w Providerze
 export const SettingsContext = createContext<SettingsContextType>({
   isSeniorMode: false,
   setIsSeniorMode: () => {},
+  fontSizeLevel: 0,
+  setFontSizeLevel: () => {},
 });
 
 interface ProviderProps {
@@ -19,6 +23,7 @@ interface ProviderProps {
 
 export const SettingsProvider: React.FC<ProviderProps> = ({ children }) => {
   const [isSeniorMode, setIsSeniorModeState] = useState<boolean>(false);
+  const [fontSizeLevel, setFontSizeLevelState] = useState(0);
 
   // 1.1. Po zamontowaniu: wczytujemy z AsyncStorage, czy jest Senior Mode
   useEffect(() => {
@@ -50,8 +55,26 @@ export const SettingsProvider: React.FC<ProviderProps> = ({ children }) => {
     setIsSeniorModeState(val);
   };
 
+  useEffect(() => {
+    (async () => {
+      const stored = await AsyncStorage.getItem('fontSizeLevel');
+      if (stored !== null) setFontSizeLevelState(JSON.parse(stored));
+    })();
+  }, []);
+
+  useEffect(() => {
+    AsyncStorage.setItem('fontSizeLevel', JSON.stringify(fontSizeLevel));
+  }, [fontSizeLevel]);
+
   return (
-    <SettingsContext.Provider value={{ isSeniorMode, setIsSeniorMode }}>
+    <SettingsContext.Provider
+      value={{
+        isSeniorMode,
+        setIsSeniorMode: setIsSeniorModeState,
+        fontSizeLevel,
+        setFontSizeLevel: setFontSizeLevelState,
+      }}
+    >
       {children}
     </SettingsContext.Provider>
   );

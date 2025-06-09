@@ -19,7 +19,8 @@ function TabLayoutInner() {
   // Wartości senior moda pochodzą teraz z contextu który jest dostępny dla całej aplikacji
   const { isSeniorMode, setIsSeniorMode } = useContext(SettingsContext);
   const [isHighContrast, setIsHighContrast] = useState<boolean>(false);
-  const [fontSizeLevel, setFontSizeLevel] = useState<number>(0);
+  const { fontSizeLevel, setFontSizeLevel } = useContext(SettingsContext);
+
 
   // Funkcje do zmiany ustawień
   const toggleUserMode = () => setIsSeniorMode(!isSeniorMode) 

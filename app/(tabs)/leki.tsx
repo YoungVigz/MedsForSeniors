@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View, Button, ScrollView } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
+import { AppText } from "@/components/AppText";
 
 // tymczasowe dopoki apteczka ni bedzie zbudowana
 const intialDrugs = [
@@ -63,43 +64,36 @@ export default function Leki() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.dateContainer}>
-        <Text style={styles.month}>{dayOfTheMonth}</Text>
-        <Text style={styles.day}>{dayName}</Text>
+        <AppText style={styles.month} baseSize={22}>{dayOfTheMonth}</AppText>
+        <AppText style={styles.day} baseSize={18}>{dayName}</AppText>
       </View>
 
-      {drugs.length === 0 ? ( // jeśli lista leków na dziś się skończyła
-        <Text style={styles.emptyMessage}>Wszystkie zostały przyjęte</Text>
+      {drugs.length === 0 ? (
+        <AppText style={styles.emptyMessage} baseSize={16}>Wszystkie zostały przyjęte</AppText>
       ) : (
-        drugs.map(
-          (
-            drug // renderuj kontener leku na stronie
-          ) => (
-            <View key={drug.id} style={styles.drugListContainer}>
-              <View
-                style={[
-                  styles.timeBox,
-                  isLate(drug.doseTime) && styles.timeBoxLate, // zmień tło godziny przyjęcia na czerwony, jeśli nie został przyjęty
-                ]}
-              >
-                <Text style={styles.timeText}>{drug.doseTime}</Text>
+        drugs.map((drug) => (
+          <View key={drug.id} style={styles.drugListContainer}>
+            <View
+              style={[
+                styles.timeBox,
+                isLate(drug.doseTime) && styles.timeBoxLate,
+              ]}
+            >
+              <AppText style={styles.timeText} baseSize={16}>{drug.doseTime}</AppText>
+            </View>
+
+            <View style={styles.drugListItem}>
+              <View style={styles.drugListTop}>
+                <AppText style={styles.drugName} baseSize={18}>{drug.name}</AppText>
+                <AppText style={styles.drugAmount} baseSize={16}>{drug.amount}</AppText>
               </View>
 
-              <View style={styles.drugListItem}>
-                <View style={styles.drugListTop}>
-                  <Text style={styles.drugName}>{drug.name}</Text>
-                  <Text style={styles.drugAmount}>{drug.amount}</Text>
-                </View>
-
-                <View style={styles.drugListBottom}>
-                  <Button
-                    title="Przyjęte"
-                    onPress={() => handleDrugTaken(drug.id)}
-                  />
-                </View>
+              <View style={styles.drugListBottom}>
+                <Button title="Przyjęte" onPress={() => handleDrugTaken(drug.id)} />
               </View>
             </View>
-          )
-        )
+          </View>
+        ))
       )}
     </ScrollView>
   );
@@ -116,11 +110,11 @@ const styles = StyleSheet.create({
   },
   month: {
     color: "white",
-    fontSize: 22,
+    //fontSize: 22,
   },
   day: {
     color: "#aaa",
-    fontSize: 18,
+    //fontSize: 18,
     marginTop: 4,
   },
   drugListContainer: {
@@ -128,7 +122,7 @@ const styles = StyleSheet.create({
   },
   timeText: {
     color: "#bbb",
-    fontSize: 16,
+    //fontSize: 16,
     marginBottom: 6,
   },
   drugListItem: {
@@ -143,11 +137,11 @@ const styles = StyleSheet.create({
   },
   drugName: {
     color: "white",
-    fontSize: 18,
+    //fontSize: 18,
   },
   drugAmount: {
     color: "white",
-    fontSize: 16,
+    //fontSize: 16,
   },
   drugListBottom: {
     alignItems: "center",
@@ -155,7 +149,7 @@ const styles = StyleSheet.create({
   emptyMessage: {
     color: "#aaa",
     textAlign: "center",
-    fontSize: 16,
+    //fontSize: 16,
     marginTop: 40,
   },
   timeBox: {
