@@ -152,7 +152,6 @@ useEffect(() => {
           contentContainerStyle={styles.listContainer}
         />
       )}
-
     </View>
   );
 }
