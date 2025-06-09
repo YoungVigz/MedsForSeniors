@@ -6,7 +6,9 @@ interface SettingsContextType {
   isSeniorMode: boolean;
   setIsSeniorMode: (val: boolean) => void;
   fontSizeLevel: number;
-  setFontSizeLevel: React.Dispatch<React.SetStateAction<number>>; 
+  setFontSizeLevel: React.Dispatch<React.SetStateAction<number>>;
+  isHighContrast: boolean;
+  setIsHighContrast: (val: boolean) => void;
 }
 
 // Domyślne wartości zostaną nadpisane w Providerze
@@ -15,6 +17,8 @@ export const SettingsContext = createContext<SettingsContextType>({
   setIsSeniorMode: () => {},
   fontSizeLevel: 0,
   setFontSizeLevel: () => {},
+  isHighContrast: false,
+  setIsHighContrast: () => {},
 });
 
 interface ProviderProps {
@@ -24,6 +28,7 @@ interface ProviderProps {
 export const SettingsProvider: React.FC<ProviderProps> = ({ children }) => {
   const [isSeniorMode, setIsSeniorModeState] = useState<boolean>(false);
   const [fontSizeLevel, setFontSizeLevelState] = useState(0);
+  const [isHighContrast, setIsHighContrastState] = useState(false);
 
   // 1.1. Po zamontowaniu: wczytujemy z AsyncStorage, czy jest Senior Mode
   useEffect(() => {
@@ -55,6 +60,7 @@ export const SettingsProvider: React.FC<ProviderProps> = ({ children }) => {
     setIsSeniorModeState(val);
   };
 
+  // czcionka
   useEffect(() => {
     (async () => {
       const stored = await AsyncStorage.getItem('fontSizeLevel');
@@ -66,6 +72,18 @@ export const SettingsProvider: React.FC<ProviderProps> = ({ children }) => {
     AsyncStorage.setItem('fontSizeLevel', JSON.stringify(fontSizeLevel));
   }, [fontSizeLevel]);
 
+  // kontrast
+  useEffect(() => {
+    (async () => {
+      const stored = await AsyncStorage.getItem('isHighContrast');
+      if (stored !== null) setIsHighContrastState(JSON.parse(stored));
+    })();
+  }, []);
+
+  useEffect(() => {
+    AsyncStorage.setItem('isHighContrast', JSON.stringify(isHighContrast));
+  }, [isHighContrast]);
+
   return (
     <SettingsContext.Provider
       value={{
@@ -73,6 +91,8 @@ export const SettingsProvider: React.FC<ProviderProps> = ({ children }) => {
         setIsSeniorMode: setIsSeniorModeState,
         fontSizeLevel,
         setFontSizeLevel: setFontSizeLevelState,
+        isHighContrast,
+        setIsHighContrast: setIsHighContrastState,
       }}
     >
       {children}

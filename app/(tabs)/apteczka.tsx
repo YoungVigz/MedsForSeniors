@@ -28,10 +28,11 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useIsFocused } from '@react-navigation/native';
 import { AppText } from "@/components/AppText";
-
+import { useThemeColors } from '@/hooks/useThemeColors';
 
 export default function Apteczka() {
   const isFocused = useIsFocused();
+  const themeColors = useThemeColors();
 
   // ---------------------------------------
   // Kontekst Senior Mode
@@ -294,115 +295,129 @@ export default function Apteczka() {
   // Render pojedynczego leku w liście:
   // ---------------------------------------
   const renderItem = ({ item }: { item: Medication }) => {
-    const shelfEntry = shelf.items.find((s) => s.medication_id === item.id);
-    const quantity = shelfEntry?.quantity ?? 0;
-    const schedule = schedules.find((s) => s.medication_id === item.id);
-    const timeDisplay = schedule?.times?.join(', ') ?? '–';
-    const dosageQuantity = 'value' in item.dosage ? item.dosage.value : 0;
+  const shelfEntry = shelf.items.find((s) => s.medication_id === item.id);
+  const quantity = shelfEntry?.quantity ?? 0;
+  const schedule = schedules.find((s) => s.medication_id === item.id);
+  const timeDisplay = schedule?.times?.join(', ') ?? '–';
+  const dosageQuantity = 'value' in item.dosage ? item.dosage.value : 0;
 
-    return (
-  <View style={styles.medRow}>
-    <View style={styles.medTitle}>
-      <AppText baseSize={18} style={styles.medText}>
-        {item.genericName}{item.brandName ? ` (${item.brandName})` : ''}
-      </AppText>
-      {isSeniorMode && (
-        <View style={{ flexDirection: 'row' }}>
-          <TouchableOpacity onPress={() => startEditMedication(item.id)}>
-            <Ionicons
-              name="create-outline"
-              size={30}
-              color={item.id === editingMedId ? "#0e86d4" : "#fff"}
-              style={{ marginRight: 10 }}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() =>
-              Alert.alert('Usuń lek', 'Czy na pewno?', [
-                { text: 'Anuluj', style: 'cancel' },
-                { text: 'Tak', onPress: () => deleteMedication(item.id), style: 'destructive' },
-              ])
+  return (
+    <View
+      style={[
+        styles.medRow,
+        {
+          backgroundColor: themeColors.tabBarBackground,
+          borderColor: themeColors.accent,
+          borderWidth: 1,
+          borderRadius: 12,
+          padding: 12,
+        },
+      ]}
+    >
+      <View style={styles.medTitle}>
+        <AppText baseSize={18} style={[styles.medText, { color: themeColors.text }]}>
+          {item.genericName}{item.brandName ? ` (${item.brandName})` : ''}
+        </AppText>
+        {isSeniorMode && (
+          <View style={{ flexDirection: 'row' }}>
+            <TouchableOpacity onPress={() => startEditMedication(item.id)}>
+              <Ionicons
+                name="create-outline"
+                size={30}
+                color={item.id === editingMedId ? themeColors.accent : themeColors.text}
+                style={{ marginRight: 10 }}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() =>
+                Alert.alert('Usuń lek', 'Czy na pewno?', [
+                  { text: 'Anuluj', style: 'cancel' },
+                  { text: 'Tak', onPress: () => deleteMedication(item.id), style: 'destructive' },
+                ])
+              }
+            >
+              <Ionicons name="close-circle-outline" size={30} color={themeColors.text} />
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+
+      <View style={styles.medInfoContainer}>
+        <View>
+          <AppText baseSize={16} style={[styles.medInfo, { color: themeColors.text }]}>Przyjmowanie</AppText>
+          <AppText baseSize={16} style={[styles.medBadge, { color: themeColors.text }]}>{timeDisplay}</AppText>
+          <AppText baseSize={16} style={[styles.medBadge, { color: themeColors.text }]}>codziennie</AppText>
+          <AppText baseSize={16} style={[styles.medBadge, { color: themeColors.text }]}>
+            {dosageQuantity} {dosageQuantity === 1 ? 'tabletka' : 'tabletek'}
+          </AppText>
+        </View>
+        <View>
+          <AppText baseSize={16} style={[styles.medInfo, { color: themeColors.text }]}>Zostało</AppText>
+          <AppText
+            baseSize={16}
+            style={
+              (quantity - dosageQuantity * 3) < 0
+                ? [styles.medBadgeDanger, { color: '#fff', borderColor: 'red', backgroundColor: 'red' }]
+                : [styles.medBadge, { color: themeColors.text, borderColor: themeColors.accent }]
             }
           >
-            <Ionicons name="close-circle-outline" size={30} color="#fff" />
-          </TouchableOpacity>
+            {quantity} {quantity === 1 ? 'tabletka' : 'tabletek'}
+          </AppText>
         </View>
-      )}
-    </View>
-    <View style={styles.medInfoContainer}>
-      <View>
-        <AppText baseSize={16} style={styles.medInfo}>Przyjmowanie</AppText>
-        <AppText baseSize={16} style={styles.medBadge}>{timeDisplay}</AppText>
-        <AppText baseSize={16} style={styles.medBadge}>codziennie</AppText>
-        <AppText baseSize={16} style={styles.medBadge}>
-          {dosageQuantity} {dosageQuantity === 1 ? 'tabletka' : 'tabletek'}
-        </AppText>
-      </View>
-      <View>
-        <AppText baseSize={16} style={styles.medInfo}>Zostało</AppText>
-        <AppText
-          baseSize={16}
-          style={(quantity - dosageQuantity * 3) < 0 ? styles.medBadgeDanger : styles.medBadge}
-        >
-          {quantity} {quantity === 1 ? 'tabletka' : 'tabletek'}
-        </AppText>
       </View>
     </View>
-  </View>
-);
+  );
 };
 
 return (
-  <View style={styles.container}>
+  <View style={[styles.container, { backgroundColor: themeColors.background }]}>
     {/* FORMULARZ dodawania – widoczny tylko, gdy isSeniorMode === true  */}
     {isSeniorMode && (
       <>
-        {/* Pole nazwa leku */}
-        <TextInput
-          style={styles.input}
-          placeholder="Nazwa leku"
-          placeholderTextColor="#aaa"
-          value={newMedName}
-          onChangeText={setNewMedName}
-        />
-        {/* Pole na marke */}
-        <TextInput
-          style={styles.input}
-          placeholder="Marka (opcjonalnie)"
-          placeholderTextColor="#aaa"
-          value={newBrandName}
-          onChangeText={setNewBrandName}
-        />
+  <TextInput
+    style={[styles.input, { color: '#aaa', borderColor: themeColors.accent }]}
+    placeholder="Nazwa leku"
+    placeholderTextColor="#aaa"
+    value={newMedName}
+    onChangeText={setNewMedName}
+  />
+  <TextInput
+    style={[styles.input, { color: '#aaa', borderColor: themeColors.accent }]}
+    placeholder="Marka (opcjonalnie)"
+    placeholderTextColor="#aaa"
+    value={newBrandName}
+    onChangeText={setNewBrandName}
+  />
+  <TextInput
+    style={[styles.input, { color: '#aaa', borderColor: themeColors.accent }]}
+    placeholder="Dawkowanie (ile tabletek dziennie)"
+    placeholderTextColor="#aaa"
+    value={newDosageValue}
+    onChangeText={setNewDosageValue}
+    keyboardType="numeric"
+  />
+  <TextInput
+    style={[styles.input, { color: '#aaa', borderColor: themeColors.accent }]}
+    placeholder="Ilość tabletek które zostały"
+    placeholderTextColor="#aaa"
+    value={newQuantity}
+    onChangeText={setNewQuantity}
+    keyboardType="numeric"
+  />
 
-        {/* Pole dawkowania (ilość tabletek dziennie) */}
-        <TextInput
-          style={styles.input}
-          placeholder="Dawkowanie (ile tabletek dziennie)"
-          placeholderTextColor="#aaa"
-          value={newDosageValue}
-          onChangeText={setNewDosageValue}
-          keyboardType="numeric"
-        />
 
-        {/* Pole ilości w apteczce */}
-        <TextInput
-          style={styles.input}
-          placeholder="Ilość tabletek które zostały"
-          placeholderTextColor="#aaa"
-          value={newQuantity}
-          onChangeText={setNewQuantity}
-          keyboardType="numeric"
-        />
-
-        {/* Wybór godziny przyjęcia */}
         <TouchableOpacity
-          style={styles.datePickerButton}
+          style={[styles.datePickerButton, { borderColor: themeColors.accent }]}
           onPress={() => setShowDatePicker(true)}
         >
-          <AppText baseSize={16} style={styles.datePickerButtonText}>
-            Godzina przyjmowania leku: {newDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </AppText>
+          <AppText
+            baseSize={16}
+              style={[styles.datePickerButtonText, { color: '#aaa' }]}
+            >
+              Godzina przyjmowania leku: {newDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </AppText>
         </TouchableOpacity>
+
         {showDatePicker && (
           <DateTimePicker
             value={newDateTime}
@@ -412,11 +427,10 @@ return (
           />
         )}
 
-        {/* Przycisk „Dodaj lek” */}
         <View style={styles.buttonWrapper}>
           <TouchableOpacity
             onPress={addOrUpdateMedication}
-            style={styles.button}
+            style={[styles.button, { backgroundColor: themeColors.accent }]}
           >
             <AppText baseSize={18} style={styles.buttonText}>
               {isEditModalVisible ? "Aktualizuj Lek" : "Dodaj Lek"}
@@ -426,9 +440,8 @@ return (
       </>
     )}
 
-    {/* 9. LISTA LEKÓW. Jeśli brak, wyświetlamy komunikat */}
     {medications.length === 0 ? (
-      <AppText baseSize={16} style={styles.emptyText}>Brak leków w szafce.</AppText>
+      <AppText baseSize={16} style={[styles.emptyText, { color: themeColors.text }]}>Brak leków w szafce.</AppText>
     ) : (
       <FlatList
         data={medications}
@@ -439,6 +452,7 @@ return (
     )}
   </View>
 );
+
 
 }
 
