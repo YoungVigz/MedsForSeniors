@@ -163,6 +163,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#25292e",
     padding: 16
   },
+  emptyText: {},
+  listContainer: {},
   dateRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
