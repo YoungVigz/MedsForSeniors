@@ -13,6 +13,7 @@ import {
 } from '@/types/scheduler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
+import { AppText } from "@/components/AppText";
 
 // Helper function to get the current week dates starting from Monday
 const getCurrentWeekDates = () => {
@@ -96,32 +97,41 @@ useEffect(() => {
 
 // Render function for each medication item
   const renderItem = ({ item }: { item: Medication }) => {
-    const shelfEntry = shelf.items.find((s) => s.medication_id === item.id);
-    const quantity = shelfEntry?.quantity ?? 0;
-    const schedule = schedules.find((s) => s.medication_id === item.id);
-    const timeDisplay = schedule?.times?.join(', ') ?? '–';
-    const dosageQuantity = 'value' in item.dosage ? item.dosage.value : 0;
+  const shelfEntry = shelf.items.find((s) => s.medication_id === item.id);
+  const quantity = shelfEntry?.quantity ?? 0;
+  const schedule = schedules.find((s) => s.medication_id === item.id);
+  const timeDisplay = schedule?.times?.join(', ') ?? '–';
+  const dosageQuantity = 'value' in item.dosage ? item.dosage.value : 0;
 
-    return (
-      <View style={[styles.medContainer, { marginBottom: 5 }]}>
-        <Text style={styles.medInfoTime}>{timeDisplay}</Text>
-    
-        <View style={styles.medRow}>
-          <Text style={styles.medText}>
-            {item.genericName}{item.brandName ? ` (${item.brandName})` : ''}
-          </Text>
-          <Text style={styles.medText}>
-            {dosageQuantity} {dosageQuantity === 1 ? 'tabletka' : 'tabletek'}
-          </Text>
-        </View>
+  return (
+    <View style={[styles.medContainer, { marginBottom: 5 }]}>
+      <AppText baseSize={16} style={styles.medInfoTime}>
+        {timeDisplay}
+      </AppText>
+
+      <View style={styles.medRow}>
+        <AppText baseSize={18} style={styles.medText}>
+          {item.genericName}{item.brandName ? ` (${item.brandName})` : ''}
+        </AppText>
+        <AppText baseSize={18} style={styles.medText}>
+          {dosageQuantity} {dosageQuantity === 1 ? 'tabletka' : 'tabletek'}
+        </AppText>
       </View>
-    );
-  };
+    </View>
+  );
+};
+
 
 // Main render function
-  return (
+return (
     <View style={styles.container}>
-      <Text style={styles.selectedDateLabel}>{getPolishMonthName(weekDates.find(date => date.getDate() === selectedDate)?.getMonth() ?? new Date().getMonth())}</Text>
+      <AppText baseSize={20} style={styles.selectedDateLabel}>
+        {getPolishMonthName(
+          weekDates.find((date) => date.getDate() === selectedDate)?.getMonth() ??
+            new Date().getMonth()
+        )}
+      </AppText>
+
       <View style={styles.dateRow}>
         {days.map((day, index) => {
           const date = weekDates[index].getDate();
@@ -133,17 +143,31 @@ useEffect(() => {
               style={[styles.dateItem, isSelected && styles.selectedDate]}
               onPress={() => setSelectedDate(date)}
             >
-              <Text style={[styles.dayText, isSelected && styles.selectedText]}>{day}</Text>
-              <Text style={[styles.dateText, isSelected && styles.selectedText]}>{date}</Text>
+              <AppText
+                baseSize={16}
+                style={[styles.dayText, isSelected && styles.selectedText]}
+              >
+                {day}
+              </AppText>
+              <AppText
+                baseSize={18}
+                style={[styles.dateText, isSelected && styles.selectedText]}
+              >
+                {date}
+              </AppText>
             </TouchableOpacity>
           );
         })}
       </View>
 
-      <Text style={styles.selectedDateLabel}>{selectedDate} {getPolishMonthNameGenitive(new Date().getMonth())}</Text>
+      <AppText baseSize={20} style={styles.selectedDateLabel}>
+        {selectedDate} {getPolishMonthNameGenitive(new Date().getMonth())}
+      </AppText>
 
       {medications.length === 0 ? (
-        <Text style={styles.emptyText}>Brak lekow.</Text>
+        <AppText baseSize={16} style={styles.emptyText}>
+          Brak lekow.
+        </AppText>
       ) : (
         <FlatList
           data={medications}
@@ -179,11 +203,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#126A91',
   },
   dayText: {
-    fontSize: 12,
+    //fontSize: 12,
     color: "white",
   },
   dateText: {
-    fontSize: 16,
+    //fontSize: 16,
     color: "white",
   },
   selectedText: {
@@ -191,7 +215,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   selectedDateLabel: {
-    fontSize: 18,
+    //fontSize: 18,
     color: "white",
     fontWeight: '600',
     marginBottom: 10,
@@ -218,18 +242,18 @@ const styles = StyleSheet.create({
   },
   medText: {
     color: '#fff',
-    fontSize: 20,
+    //fontSize: 20,
     marginLeft: 10,
     marginRight: 10,
   },
   medInfoTime: {
     color: '#fff',
-    fontSize: 16,
+    //fontSize: 16,
     marginBottom: 8,
   },
   medBadge: {
     color: '#fff',
-    fontSize: 14,
+    //fontSize: 14,
     borderWidth: 1,
     borderColor: 'grey',
     borderRadius: 40,
@@ -239,7 +263,7 @@ const styles = StyleSheet.create({
   },
   medBadgeDanger: {
     color: '#fff',
-    fontSize: 14,
+    //fontSize: 14,
     borderWidth: 1,
     borderColor: 'red',
     borderRadius: 40,
