@@ -1,7 +1,8 @@
 import { StyleSheet, Text, View, Button, ScrollView } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { useState } from "react";
-import { AppText } from "@/components/AppText";
+import { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useIsFocused } from "@react-navigation/native";
 
 // tymczasowe dopoki apteczka ni bedzie zbudowana
 const intialDrugs = [
@@ -35,11 +36,42 @@ const intialDrugs = [
   },
 ];
 
+type MedForToday = {
+  id: string,
+  name: string,
+  amount: number,
+  doseTime: string
+}
+
 export default function Leki() {
-  //const { drugs } = useLocalSearchParams(); kiedy apteczka bedzie zbudowana
-  const [drugs, setDrugs] = useState(intialDrugs);
-  const handleDrugTaken = (id: string) => {
+  const isFocused = useIsFocused();
+  const [drugs, setDrugs] = useState<MedForToday[]>([]);
+
+  const [userName, setUserName] = useState<string>("");
+  const [debug, setDebug] = useState<string>("");
+
+  const handleDrugTaken = async (id: string, dosege: number) => {
     setDrugs((prevDrugs) => prevDrugs.filter((drug) => drug.id !== id));
+
+    const day = today.toISOString().substring(0, 10);
+    const newList = drugs.filter((d) => d.id !== id);
+    await AsyncStorage.setItem(day, JSON.stringify(newList))
+
+    const shelfRaw = await AsyncStorage.getItem("shelf")
+    if(!shelfRaw) return;
+
+    const shelf = JSON.parse(shelfRaw).items
+    shelf.forEach((s: any) => {
+      if(s.medication_id == id) {
+        s.quantity -= dosege
+      }
+    });
+
+    const newShelf = {
+      "items": shelf
+    }
+
+    await AsyncStorage.setItem("shelf", JSON.stringify(newShelf))
   };
 
   const today = new Date();
@@ -48,6 +80,73 @@ export default function Leki() {
     day: "numeric",
     month: "long",
   });
+
+  useEffect(() => {
+    const setName = async () => {
+
+      const name = await AsyncStorage.getItem("userName");
+
+      if(typeof name == "string") {
+        setUserName(name)
+      } else {
+        setUserName("Użytkownik")
+      }
+    }
+
+    const setMedicines = async () => {
+
+      const day = today.toISOString().substring(0, 10);
+      const drugs: string | null = await AsyncStorage.getItem(day)
+
+      if(!drugs) {
+        const scheduleRaw = await AsyncStorage.getItem("schedules")
+        const medicationsRaw = await AsyncStorage.getItem("medications")
+
+        const medsForToday: MedForToday[] = []
+
+        if(!scheduleRaw || !medicationsRaw) return;
+
+        const schedule = JSON.parse(scheduleRaw)
+        const medications = JSON.parse(medicationsRaw)
+
+        schedule.forEach((sch: any) => {
+          let med: MedForToday = {
+            id: "",
+            amount: 0,
+            doseTime: "",
+            name: "" 
+          }
+
+          med.id = sch.medication_id
+          med.amount = sch.timesInDay
+          med.doseTime = sch.times[0]
+
+          medications.forEach((medi: any) => {
+            if(medi.id === med.id) {
+              med.name = medi.genericName
+            }
+          });
+
+          medsForToday.push(med)
+        });
+
+        await AsyncStorage.setItem(day, JSON.stringify(medsForToday))
+      }
+
+
+      let drugListRaw = await AsyncStorage.getItem(day)
+      if(!drugListRaw) return;
+
+      let meds: MedForToday[] = JSON.parse(drugListRaw)
+      setDrugs(meds)
+    }
+
+
+    setName()
+    setMedicines()
+  }, [isFocused])
+
+
 
   const isLate = (doseTime: string): boolean => {
     const now = new Date();
@@ -62,40 +161,50 @@ export default function Leki() {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
+      <Text style={styles.month}>Witaj {userName}! {debug}</Text>
       <View style={styles.dateContainer}>
         <AppText style={styles.month} baseSize={22}>{dayOfTheMonth}</AppText>
         <AppText style={styles.day} baseSize={18}>{dayName}</AppText>
       </View>
 
-      {drugs.length === 0 ? (
-        <AppText style={styles.emptyMessage} baseSize={16}>Wszystkie zostały przyjęte</AppText>
-      ) : (
-        drugs.map((drug) => (
-          <View key={drug.id} style={styles.drugListContainer}>
-            <View
-              style={[
-                styles.timeBox,
-                isLate(drug.doseTime) && styles.timeBoxLate,
-              ]}
-            >
-              <AppText style={styles.timeText} baseSize={16}>{drug.doseTime}</AppText>
-            </View>
+      <ScrollView>
+        {drugs.length === 0 ? ( // jeśli lista leków na dziś się skończyła
+          <Text style={styles.emptyMessage}>Wszystkie zostały przyjęte</Text>
+        ) : (
+          drugs.map(
+            (
+              drug // renderuj kontener leku na stronie
+            ) => (
+              <View key={drug.id} style={styles.drugListContainer}>
+                <View
+                  style={[
+                    styles.timeBox,
+                    isLate(drug.doseTime) && styles.timeBoxLate, // zmień tło godziny przyjęcia na czerwony, jeśli nie został przyjęty
+                  ]}
+                >
+                  <Text style={styles.timeText}>{drug.doseTime}</Text>
+                </View>
 
-            <View style={styles.drugListItem}>
-              <View style={styles.drugListTop}>
-                <AppText style={styles.drugName} baseSize={18}>{drug.name}</AppText>
-                <AppText style={styles.drugAmount} baseSize={16}>{drug.amount}</AppText>
-              </View>
+                <View style={styles.drugListItem}>
+                  <View style={styles.drugListTop}>
+                    <Text style={styles.drugName}>{drug.name}</Text>
+                    <Text style={styles.drugAmount}>{drug.amount} tabletka</Text>
+                  </View>
 
-              <View style={styles.drugListBottom}>
-                <Button title="Przyjęte" onPress={() => handleDrugTaken(drug.id)} />
+                  <View style={styles.drugListBottom}>
+                    <Button
+                      title="Przyjęte"
+                      onPress={() => handleDrugTaken(drug.id, drug.amount)}
+                    />
+                  </View>
+                </View>
               </View>
-            </View>
-          </View>
-        ))
-      )}
-    </ScrollView>
+            )
+          )
+        )}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -110,12 +219,12 @@ const styles = StyleSheet.create({
   },
   month: {
     color: "white",
-    //fontSize: 22,
+    fontSize: 22,
+    marginBottom: 5
   },
   day: {
     color: "#aaa",
-    //fontSize: 18,
-    marginTop: 4,
+    fontSize: 18,
   },
   drugListContainer: {
     marginBottom: 20,
