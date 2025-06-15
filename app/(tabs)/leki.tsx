@@ -3,6 +3,9 @@ import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useIsFocused } from "@react-navigation/native";
+import { AppText } from "@/components/AppText";
+import { TouchableOpacity } from "react-native";
+import { useThemeColors } from '@/hooks/useThemeColors';
 
 // tymczasowe dopoki apteczka ni bedzie zbudowana
 const intialDrugs = [
@@ -45,6 +48,7 @@ type MedForToday = {
 
 export default function Leki() {
   const isFocused = useIsFocused();
+  const themeColors = useThemeColors();
   const [drugs, setDrugs] = useState<MedForToday[]>([]);
 
   const [userName, setUserName] = useState<string>("");
@@ -160,52 +164,76 @@ export default function Leki() {
     return now > doseDate;
   };
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.month}>Witaj {userName}! {debug}</Text>
-      <View style={styles.dateContainer}>
-        <Text style={styles.month}>{dayOfTheMonth}</Text>
-        <Text style={styles.day}>{dayName}</Text>
-      </View>
+return (
+  <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+    <AppText baseSize={22} style={[styles.month, { color: themeColors.text }]}>
+      Witaj {userName}! {debug}
+    </AppText>
 
-      <ScrollView>
-        {drugs.length === 0 ? ( // jeśli lista leków na dziś się skończyła
-          <Text style={styles.emptyMessage}>Wszystkie zostały przyjęte</Text>
-        ) : (
-          drugs.map(
-            (
-              drug // renderuj kontener leku na stronie
-            ) => (
-              <View key={drug.id} style={styles.drugListContainer}>
-                <View
-                  style={[
-                    styles.timeBox,
-                    isLate(drug.doseTime) && styles.timeBoxLate, // zmień tło godziny przyjęcia na czerwony, jeśli nie został przyjęty
-                  ]}
-                >
-                  <Text style={styles.timeText}>{drug.doseTime}</Text>
-                </View>
-
-                <View style={styles.drugListItem}>
-                  <View style={styles.drugListTop}>
-                    <Text style={styles.drugName}>{drug.name}</Text>
-                    <Text style={styles.drugAmount}>{drug.amount} tabletka</Text>
-                  </View>
-
-                  <View style={styles.drugListBottom}>
-                    <Button
-                      title="Przyjęte"
-                      onPress={() => handleDrugTaken(drug.id, drug.amount)}
-                    />
-                  </View>
-                </View>
-              </View>
-            )
-          )
-        )}
-      </ScrollView>
+    <View style={styles.dateContainer}>
+      <AppText baseSize={22} style={[styles.month, { color: themeColors.text }]}>
+        {dayOfTheMonth}
+      </AppText>
+      <AppText baseSize={18} style={[styles.day, { color: themeColors.text }]}>
+        {dayName}
+      </AppText>
     </View>
-  );
+
+    <ScrollView>
+      {drugs.length === 0 ? (
+        <AppText baseSize={16} style={[styles.emptyMessage, { color: themeColors.text }]}>
+          Wszystkie zostały przyjęte
+        </AppText>
+      ) : (
+        drugs.map((drug) => (
+          <View key={drug.id} style={styles.drugListContainer}>
+            <View style={[
+              styles.timeBox,
+              { backgroundColor: isLate(drug.doseTime) ? 'red' : themeColors.accent }
+            ]}>
+              <AppText baseSize={16} style={styles.timeText}>
+                {drug.doseTime}
+              </AppText>
+            </View>
+
+            <View
+  style={[
+    styles.drugListItem,
+    {
+      backgroundColor: themeColors.tabBarBackground,
+      borderColor: themeColors.accent,
+      borderWidth: 1,
+      borderRadius: 12,
+    },
+  ]}
+>
+  <View style={styles.drugListTop}>
+    <AppText baseSize={18} style={[styles.drugName, { color: themeColors.text }]}>
+      {drug.name}
+    </AppText>
+    <AppText baseSize={16} style={[styles.drugAmount, { color: themeColors.text }]}>
+      {drug.amount} tabletka
+    </AppText>
+  </View>
+
+  <View style={styles.drugListBottom}>
+    <TouchableOpacity
+      onPress={() => handleDrugTaken(drug.id, drug.amount)}
+      style={[styles.button, { backgroundColor: themeColors.accent }]}
+    >
+      <AppText baseSize={18} style={styles.buttonText}>
+        Przyjęte
+      </AppText>
+    </TouchableOpacity>
+  </View>
+</View>
+
+          </View>
+        ))
+      )}
+    </ScrollView>
+  </View>
+);
 }
 
 const styles = StyleSheet.create({
@@ -219,23 +247,23 @@ const styles = StyleSheet.create({
   },
   month: {
     color: "white",
-    fontSize: 22,
+    //fontSize: 22,
     marginBottom: 5
   },
   day: {
     color: "#aaa",
-    fontSize: 18,
+    //fontSize: 18,
   },
   drugListContainer: {
     marginBottom: 20,
   },
   timeText: {
     color: "#bbb",
-    fontSize: 16,
+    //fontSize: 16,
     marginBottom: 6,
   },
   drugListItem: {
-    backgroundColor: "#333",
+    //backgroundColor: "#333",
     padding: 16,
     borderRadius: 12,
   },
@@ -246,11 +274,11 @@ const styles = StyleSheet.create({
   },
   drugName: {
     color: "white",
-    fontSize: 18,
+    //fontSize: 18,
   },
   drugAmount: {
     color: "white",
-    fontSize: 16,
+    //fontSize: 16,
   },
   drugListBottom: {
     alignItems: "center",
@@ -258,7 +286,7 @@ const styles = StyleSheet.create({
   emptyMessage: {
     color: "#aaa",
     textAlign: "center",
-    fontSize: 16,
+    //fontSize: 16,
     marginTop: 40,
   },
   timeBox: {
@@ -271,4 +299,16 @@ const styles = StyleSheet.create({
   timeBoxLate: {
     backgroundColor: "#aa0000",
   },
+    button: {
+    backgroundColor: '#0e86d4',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  buttonText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontWeight: 'bold',
+},
+
 });

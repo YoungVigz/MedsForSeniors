@@ -13,6 +13,8 @@ import {
 } from '@/types/scheduler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
+import { AppText } from "@/components/AppText";
+import { useThemeColors } from '@/hooks/useThemeColors';
 
 // Helper function to get the current week dates starting from Monday
 const getCurrentWeekDates = () => {
@@ -51,6 +53,7 @@ const getPolishMonthNameGenitive = (monthIndex: number): string => {
 
 export default function Harmonogram() {
 const isFocused = useIsFocused();
+const themeColors = useThemeColors();
 
 // Date related state and functions
 const days = ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sb', 'Nd'];
@@ -96,64 +99,99 @@ useEffect(() => {
 
 // Render function for each medication item
   const renderItem = ({ item }: { item: Medication }) => {
-    const shelfEntry = shelf.items.find((s) => s.medication_id === item.id);
-    const quantity = shelfEntry?.quantity ?? 0;
-    const schedule = schedules.find((s) => s.medication_id === item.id);
-    const timeDisplay = schedule?.times?.join(', ') ?? '–';
-    const dosageQuantity = 'value' in item.dosage ? item.dosage.value : 0;
+  const shelfEntry = shelf.items.find((s) => s.medication_id === item.id);
+  const quantity = shelfEntry?.quantity ?? 0;
+  const schedule = schedules.find((s) => s.medication_id === item.id);
+  const timeDisplay = schedule?.times?.join(', ') ?? '–';
+  const dosageQuantity = 'value' in item.dosage ? item.dosage.value : 0;
 
-    return (
-      <View style={[styles.medContainer, { marginBottom: 5 }]}>
-        <Text style={styles.medInfoTime}>{timeDisplay}</Text>
-    
-        <View style={styles.medRow}>
-          <Text style={styles.medText}>
-            {item.genericName}{item.brandName ? ` (${item.brandName})` : ''}
-          </Text>
-          <Text style={styles.medText}>
-            {dosageQuantity} {dosageQuantity === 1 ? 'tabletka' : 'tabletek'}
-          </Text>
-        </View>
+   return (
+    <View style={[styles.medContainer, { backgroundColor: themeColors.background }]}>
+      <AppText baseSize={16} style={[styles.medInfoTime, { color: themeColors.text }]}>
+        {timeDisplay}
+      </AppText>
+
+      <View style={[styles.medRow, { borderColor: themeColors.accent }]}>
+        <AppText baseSize={18} style={[styles.medText, { color: themeColors.text }]}>
+          {item.genericName}{item.brandName ? ` (${item.brandName})` : ''}
+        </AppText>
+        <AppText baseSize={18} style={[styles.medText, { color: themeColors.text }]}>
+          {dosageQuantity} {dosageQuantity === 1 ? 'tabletka' : 'tabletek'}
+        </AppText>
       </View>
-    );
-  };
-
-// Main render function
-  return (
-    <View style={styles.container}>
-      <Text style={styles.selectedDateLabel}>{getPolishMonthName(weekDates.find(date => date.getDate() === selectedDate)?.getMonth() ?? new Date().getMonth())}</Text>
-      <View style={styles.dateRow}>
-        {days.map((day, index) => {
-          const date = weekDates[index].getDate();
-          const isSelected = date === selectedDate;
-
-          return (
-            <TouchableOpacity
-              key={date}
-              style={[styles.dateItem, isSelected && styles.selectedDate]}
-              onPress={() => setSelectedDate(date)}
-            >
-              <Text style={[styles.dayText, isSelected && styles.selectedText]}>{day}</Text>
-              <Text style={[styles.dateText, isSelected && styles.selectedText]}>{date}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      <Text style={styles.selectedDateLabel}>{selectedDate} {getPolishMonthNameGenitive(new Date().getMonth())}</Text>
-
-      {medications.length === 0 ? (
-        <Text style={styles.emptyText}>Brak lekow.</Text>
-      ) : (
-        <FlatList
-          data={medications}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContainer}
-        />
-      )}
     </View>
   );
+};
+
+
+// Main render function
+return (
+  <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+    <AppText baseSize={20} style={[styles.selectedDateLabel, { color: themeColors.text }]}>
+      {getPolishMonthName(
+        weekDates.find((date) => date.getDate() === selectedDate)?.getMonth() ??
+        new Date().getMonth()
+      )}
+    </AppText>
+
+    <View style={styles.dateRow}>
+      {days.map((day, index) => {
+        const date = weekDates[index].getDate();
+        const isSelected = date === selectedDate;
+
+        return (
+          <TouchableOpacity
+            key={date}
+            style={[
+              styles.dateItem,
+              {
+                backgroundColor: isSelected ? themeColors.accent : 'transparent',
+                borderRadius: 16,
+              }
+            ]}
+            onPress={() => setSelectedDate(date)}
+          >
+            <AppText
+              baseSize={16}
+              style={{
+                color: isSelected ? '#fff' : themeColors.text,
+                fontWeight: isSelected ? 'bold' : 'normal',
+              }}
+            >
+              {day}
+            </AppText>
+            <AppText
+              baseSize={18}
+              style={{
+                color: isSelected ? '#fff' : themeColors.text,
+                fontWeight: isSelected ? 'bold' : 'normal',
+              }}
+            >
+              {date}
+            </AppText>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+
+    <AppText baseSize={20} style={[styles.selectedDateLabel, { color: themeColors.text }]}>
+      {selectedDate} {getPolishMonthNameGenitive(new Date().getMonth())}
+    </AppText>
+
+    {medications.length === 0 ? (
+      <AppText baseSize={16} style={[styles.emptyText, { color: themeColors.text }]}>
+        Brak lekow.
+      </AppText>
+    ) : (
+      <FlatList
+        data={medications}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        contentContainerStyle={styles.listContainer}
+      />
+    )}
+  </View>
+);
 }
 
 // Styles for the component
@@ -179,11 +217,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#126A91',
   },
   dayText: {
-    fontSize: 12,
+    //fontSize: 12,
     color: "white",
   },
   dateText: {
-    fontSize: 16,
+    //fontSize: 16,
     color: "white",
   },
   selectedText: {
@@ -191,7 +229,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   selectedDateLabel: {
-    fontSize: 18,
+    //fontSize: 18,
     color: "white",
     fontWeight: '600',
     marginBottom: 10,
@@ -218,18 +256,18 @@ const styles = StyleSheet.create({
   },
   medText: {
     color: '#fff',
-    fontSize: 20,
+    //fontSize: 20,
     marginLeft: 10,
     marginRight: 10,
   },
   medInfoTime: {
     color: '#fff',
-    fontSize: 16,
+    //fontSize: 16,
     marginBottom: 8,
   },
   medBadge: {
     color: '#fff',
-    fontSize: 14,
+    //fontSize: 14,
     borderWidth: 1,
     borderColor: 'grey',
     borderRadius: 40,
@@ -239,7 +277,7 @@ const styles = StyleSheet.create({
   },
   medBadgeDanger: {
     color: '#fff',
-    fontSize: 14,
+    //fontSize: 14,
     borderWidth: 1,
     borderColor: 'red',
     borderRadius: 40,

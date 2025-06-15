@@ -4,6 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { TouchableOpacity, View, StyleSheet, Animated, Easing, Switch, Text } from 'react-native';
 import { useState, useRef, useEffect, useContext } from 'react';
 import { SettingsContext, SettingsProvider } from '@/context/SettingsContext';
+import { useThemeColors } from '@/hooks/useThemeColors';
 
 export default function TabLayout() {
   return (
@@ -16,10 +17,13 @@ export default function TabLayout() {
 
 function TabLayoutInner() {
 
+  const themeColors = useThemeColors();
+
   // Wartości senior moda pochodzą teraz z contextu który jest dostępny dla całej aplikacji
   const { isSeniorMode, setIsSeniorMode } = useContext(SettingsContext);
-  const [isHighContrast, setIsHighContrast] = useState<boolean>(false);
-  const [fontSizeLevel, setFontSizeLevel] = useState<number>(0);
+  const { isHighContrast, setIsHighContrast } = useContext(SettingsContext);
+  const { fontSizeLevel, setFontSizeLevel } = useContext(SettingsContext);
+
 
   // Funkcje do zmiany ustawień
   const toggleUserMode = () => setIsSeniorMode(!isSeniorMode) 
@@ -50,75 +54,81 @@ function TabLayoutInner() {
 
 
   const TopMenuBar = () => (
-    <View style={styles.topMenuContainer}>
-      <TouchableOpacity onPress={toggleUserMode} style={styles.customSwitchWrapper}>
+  <View style={[styles.topMenuContainer, { backgroundColor: themeColors.background }]}>
+    <TouchableOpacity onPress={toggleUserMode} style={styles.customSwitchWrapper}>
+      <View style={[
+        styles.customSwitchTrack,
+        { backgroundColor: isSeniorMode ? themeColors.switchTrackActive : themeColors.switchTrack }
+      ]}>
         <View style={[
-          styles.customSwitchTrack,
-          isSeniorMode && styles.customSwitchTrackActive
+          styles.customThumb,
+          {
+            backgroundColor: isSeniorMode ? themeColors.switchThumbActive : themeColors.switchThumb,
+            transform: [{ translateX: isSeniorMode ? 48 : 0 }],
+          }
         ]}>
-          <Animated.View style={[
-            styles.customThumb,
-            isSeniorMode && styles.customThumbActive
+          <Text style={[
+            styles.thumbText, 
+            { color: (isHighContrast && !isSeniorMode) ? '#fff' : themeColors.accent }
           ]}>
-            <Text style={styles.thumbText}>
-              {isSeniorMode ? 'O' : 'S'}
-            </Text>
-          </Animated.View>
+            {isSeniorMode ? 'O' : 'S'}
+          </Text>
         </View>
+      </View>
     </TouchableOpacity>
-      
-      <TouchableOpacity onPress={toggleContrast} style={styles.iconButton}>
-        <Ionicons 
-          name={isHighContrast ? "contrast" : "contrast-outline"} 
-          size={40} 
-          color={isHighContrast ? "#126A91" : "#fff"} 
-        />
-      </TouchableOpacity>
-      
-      <TouchableOpacity onPress={cycleFontSize} style={styles.iconButton}>
-        <MaterialCommunityIcons 
-          name="format-font-size-increase" 
-          size={40} 
-          color={fontSizeLevel > 0 ? "#126A91" : "#fff"} 
-        />
-      </TouchableOpacity>
-    </View>
-  );
+
+    <TouchableOpacity onPress={toggleContrast} style={styles.iconButton}>
+      <Ionicons 
+        name={isHighContrast ? "contrast" : "contrast-outline"} 
+        size={40} 
+        color={isHighContrast ? themeColors.accent : themeColors.iconInactive} 
+      />
+    </TouchableOpacity>
+
+    <TouchableOpacity onPress={cycleFontSize} style={styles.iconButton}>
+      <MaterialCommunityIcons 
+        name="format-font-size-increase" 
+        size={40} 
+        color={fontSizeLevel > 0 ? themeColors.accent : themeColors.iconInactive} 
+      />
+    </TouchableOpacity>
+  </View>
+);
+
 
   return (
     <>
     <TopMenuBar />
 
-    <Tabs 
-      screenOptions={{
-        tabBarActiveTintColor: '#126A91',
-        headerStyle: {
-          backgroundColor: '#25292e',
-        },
-        headerShadowVisible: false,
-        headerTintColor: '#fff',
-        tabBarStyle: {
-          backgroundColor: '#25292e',
-          height: 110,
-          paddingBottom: 10,
-          bottom: 50,
-          left: 0,
-          right: 0,
-          borderTopWidth: 0,
-        },
-        tabBarItemStyle: {
-          height: '100%',
-          padding: 10,
-        },
-        tabBarIconStyle: {
-          height: '100%',
-          width: '100%',
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-        },
-      }}
-    >
+    <Tabs
+  screenOptions={{
+    tabBarActiveTintColor: themeColors.accent,
+    headerStyle: {
+      backgroundColor: themeColors.headerBackground,
+    },
+    headerTintColor: themeColors.text,
+    tabBarStyle: {
+      backgroundColor: themeColors.tabBarBackground,
+      height: 120,
+      paddingBottom: 50,
+    },
+    tabBarItemStyle: {
+      height: '100%',
+      justifyContent: 'center',
+    },
+    tabBarIconStyle: {
+      height: '100%',
+      width: '100%',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    tabBarLabelStyle: {
+      fontSize: 12,
+    },
+  }}
+>
+
+
 
       <Tabs.Screen
         name="harmonogram"
